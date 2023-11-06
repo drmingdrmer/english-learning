@@ -22,10 +22,8 @@ jobs:
 
       - name: Run GPT Translate
         uses: drmingdrmer/gpt-translate@master
-        # env:
-        #   GITHUB_USERNAME: ${{ github.repository_owner }}
-        #   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          model: gpt-4
           apikey: ${{ secrets.OPENAI_API_KEY_JUNJUN }}
           inputFiles: ${{ steps.changed_files.outputs.files }}
           outputFiles: '**/*.cn.md'
