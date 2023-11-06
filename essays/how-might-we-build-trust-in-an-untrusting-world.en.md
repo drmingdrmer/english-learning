@@ -3,7 +3,6 @@
 ## Considering the challenge of polarization in digital societies
 
 
-
 ![img](https://miro.medium.com/v2/resize:fit:1400/1*IraA41cyapCYG2vMH2Tvxw.png)
 
 We live in a divided world. My country is fractured. Your country is fractured. Everywhere I’ve been of late, from Brazil to Italy, from the Philippines to Nigeria, I see struggles to address fractured societies. Deep fissures of ethnic, religious, economic conflict.
