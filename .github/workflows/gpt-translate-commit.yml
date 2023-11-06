@@ -24,7 +24,8 @@ jobs:
         uses: drmingdrmer/gpt-translate@master
         with:
           # model: gpt-4
-          model: gpt-4-0613
+          # model: gpt-4-0613
+          model: gpt-3.5-turbo
           apikey: ${{ secrets.OPENAI_API_KEY_JUNJUN }}
           inputFiles: ${{ steps.changed_files.outputs.files }}
           outputFiles: '**/*.cn.md'
