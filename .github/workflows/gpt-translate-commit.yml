@@ -17,15 +17,16 @@ jobs:
       - name: get changed files name
         id: changed_files
           # echo "files=$(git diff --name-only "${{ github.event.before }}" "${{ github.event.head }}" | grep '\.en\.md$' | tr '\n' ' ')" >> $GITHUB_OUTPUT
+          # echo "files=$(git diff --name-only "${{ github.event.before }}" HEAD | grep '\.en\.md$' | tr '\n' ' ')" >> $GITHUB_OUTPUT
         run: |
-          echo "files=$(git diff --name-only HEAD^ HEAD | grep '\.en\.md$' | tr '\n' ' ')" >> $GITHUB_OUTPUT
+          echo "files=$(git diff --name-only "HEAD^" HEAD | grep '\.en\.md$' | tr '\n' ' ')" >> $GITHUB_OUTPUT
 
       - name: Run GPT Translate
         uses: drmingdrmer/gpt-translate@master
         with:
           # model: gpt-4
           # model: gpt-4-0613
-          model: gpt-3.5-turbo
+          # model: gpt-3.5-turbo
           apikey: ${{ secrets.OPENAI_API_KEY_JUNJUN }}
           inputFiles: ${{ steps.changed_files.outputs.files }}
           outputFiles: '**/*.cn.md'
