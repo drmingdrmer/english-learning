@@ -22,7 +22,7 @@ jobs:
       - name: Run GPT Translate
         uses: drmingdrmer/gpt-translate@master
         with:
-          apikey: ${{ secrets.OPENAI_API_KEY }}
+          apikey: ${{ secrets.OPENAI_API_KEY_JUNJUN }}
           inputFiles: ${{ steps.changed_files.outputs.files }}
           outputFiles: '**/*.cn.md'
           languages: 'Chinese'
