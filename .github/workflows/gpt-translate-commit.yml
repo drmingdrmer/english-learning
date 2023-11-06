@@ -28,7 +28,10 @@ jobs:
           # model: gpt-4-0613
           # model: gpt-3.5-turbo
           apikey: ${{ secrets.OPENAI_API_KEY_JUNJUN }}
-          prompt: 'You are an expert in this area. Please translate the given markdown into naturalistic {targetLanguage}.'
+          prompt: |
+            You are an expert in this area.
+            Please translate the given markdown into naturalistic {targetLanguage}.
+            Keep links and images.
           inputFiles: ${{ steps.changed_files.outputs.files }}
           outputFiles: '**/*.cn.md'
           languages: 'Chinese'
