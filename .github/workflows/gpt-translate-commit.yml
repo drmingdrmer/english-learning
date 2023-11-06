@@ -17,7 +17,7 @@ jobs:
       - name: get changed files name
         id: changed_files
         run: |
-          echo "files=$(git diff --name-only ${{ github.event.head }} ${{ github.event.head }} | grep '\.en\.md$' | tr '\n' ' ')" >> $GITHUB_OUTPUT
+          echo "files=$(git diff --name-only ${{ github.event.before }} ${{ github.event.head }} | grep '\.en\.md$' | tr '\n' ' ')" >> $GITHUB_OUTPUT
 
       - name: Run GPT Translate
         uses: drmingdrmer/gpt-translate@master
