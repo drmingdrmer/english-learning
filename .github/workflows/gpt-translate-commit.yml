@@ -23,7 +23,8 @@ jobs:
       - name: Run GPT Translate
         uses: drmingdrmer/gpt-translate@master
         with:
-          model: gpt-4
+          # model: gpt-4
+          model: gpt-4-0613
           apikey: ${{ secrets.OPENAI_API_KEY_JUNJUN }}
           inputFiles: ${{ steps.changed_files.outputs.files }}
           outputFiles: '**/*.cn.md'
