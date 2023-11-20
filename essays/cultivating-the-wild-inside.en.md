@@ -1,10 +1,6 @@
-
-
-Top highlight
-
 # Cultivating the Wild Inside
 
-## **Getting in touch with our humanity starts with remembering that we’re wild, too**
+## Getting in touch with our humanity starts with remembering that we’re wild, too
 
 
 

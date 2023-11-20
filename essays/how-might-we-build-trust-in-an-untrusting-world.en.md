@@ -1,4 +1,4 @@
-# **How might we build trust in an untrusting world?**
+# How might we build trust in an untrusting world?
 
 ## Considering the challenge of polarization in digital societies
 
