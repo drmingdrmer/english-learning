@@ -1,30 +1,29 @@
-## 标准 Raft 实现的 ReadIndex 流程
+## Raft 读索引的标准实现过程
 
-在 Raft 中 ReadIndex 的标准处理步骤如下：
+Raft 中处理读索引的标准过程如下：
 
-- **步骤-1**. Leader 检查自己当前 Term 的 log 是否已提交. 如果没有, 放弃读, 返回, 等待当前 Term 的 log 提交.
-- **步骤-2**. Leader 取当前的 CommitIndex 作为 ReadIndex .
-- **步骤-3**. 向 quorum 发送 heartbeat , 确认自己是唯一的 Leader.
-- **步骤-4**. 等待 AppliedIndex 达到或超过 ReadIndex 再对 StateMachine 进行读取操作.
+- **步骤 1**：领导者检查当前任期的日志是否已经提交。如果没有提交，它会放弃读取操作，返回并等待当前任期的日志被提交。
+- **步骤 2**：领导者将当前的 CommitIndex 作为读索引。
+- **步骤 3**：领导者向法定人数发送心跳以确认自己是唯一的领导者。
+- **步骤 4**：在执行状态机的读操作之前，它等待 AppliedIndex 达到或超过读索引。
 
-通过以上步骤这个流程保证了:
-**一个 read 操作发生的时间(墙上时钟时间)之前已经被 read 的数据也一定能在这次 read 中被读到**, 也就是 Linearizable read.
+通过以上步骤，这个过程确保：
+**在读操作发生的时间点之前已经读取的任何数据也可以在这个读操作中被读取**，从而保证了线性可读性。
 
-我们来看看线性一致性读取是如何被保证的:
+让我们来看一下如何确保线性可读性：
 
-## 线性一致性读的简单证明
+## 线性可读性的简单证明
 
-当当前 node(Leader) 接收到一个 read 请求 `read_1` 时, 假设墙上时钟时间是 `time_1`, Leader 的 Term 是`term_1`;
+当当前节点（领导者）收到一个读请求 `read_1`，假设当前的墙钟时间为 `time_1`，领导者的任期为 `term_1`；
 
-假设有另一个 read 请求 `read_0`, 发生在之前的某个时间, 即 `time_0`: `time_0 < time_1`,
-那么读流程要能保证 `read_1` 一定能读到所有 `read_0` 读到的状态, 以保证线性一致性.
+假设还有另一个读请求 `read_0` 发生在之前的时间，即 `time_0`：`time_0 < time_1`，
+那么读取过程必须确保 `read_1` 能够读取到 `read_0` 读取的所有状态，以保证线性可读性。
 
-再假定 `read_0` 读的 StateMachine, 包含了从 `(0, 0)` 到 `(term_0, index_0)` 这一系列 log 的状态,
-也就是说 `(term_0, index_0)` 这条 log 是 `read_0` 看到的最后一条 log.
-那么其中的 `term_0` 就有3种情况:
+假设 `read_0` 读取的状态机包括从 `(0, 0)` 到 `(term_0, index_0)` 的一系列日志状态，其中 `(term_0, index_0)` 是 `read_0` 所见到的最后一个日志。
+在这种情况下，对于 `term_0`，有三种可能性：
 
-- **case-gt**: `term_0 > term_1`: 为避免这种不可处理的情况发生, Leader 在时间 `t` 向一个 quorum 发 heartbeat 请求, 以确认在时间范围 `(0, t)` 内都没有更高的 Term; 而显然 `t` 在收到读请求 `read_1` 之后, 即 `t >= time_1`, 从而保证了: 在收到读请求 `read_1` 的时刻 `time_1`, 没有其他读取者读到更大 Term 的 log(**步骤-3**).
-- **case-eq**: `term_0 == term_1`: 对这种情况, 读操作 `read_0` 一定是在当前 node 执行的读操作; 而我们又知道由于 Raft 协议规定只有已经 commit 的 log 才能被读取, 所以 `read_0` 读到的数据一定是当前 CommitIndex 之前的, 即 `index_0 <= CommitIndex`; 这种情况下要保证 linearizable read, 也就是 `read_1` 看到所有 `read_0` 看到的状态, 就要求 `read_1` 读时的 StateMachine 至少要包含到 CommitIndex 这个位置的 log.
-- **case-lt**: `term_0 < term_1`: 对此, 因为 Raft 保证了当前 Leader 建立时, 一定含有所有已经 committed 的 log, 所以 `index_0 < NoopIndex`, 这里 `NoopIndex` 是 Leader 建立时写入的 noop log 的 index; 在这种情况下要保证 linearizable read, 就要求 `read_1` 读时的 StateMachine 至少要包含到 `NoopIndex` 的 log.
+- **case-gt**：`term_0 > term_1`：为了避免这种无法处理的情况，领导者在时间 `t` 向法定人数发送心跳请求，以确认在时间范围 `(0, t)` 内没有更高的任期；显然，`t` 是在收到读请求 `read_1` 之后，即 `t >= time_1`，从而确保在读请求 `read_1` 收到的时刻 `time_1`，没有其他读者读取到更高任期的日志（**步骤 3**）。
+- **case-eq**：`term_0 == term_1`：在这种情况下，读操作 `read_0` 必须由当前节点执行；我们还知道根据 Raft 协议，只有已提交的日志才能被读取，所以 `read_0` 读取的数据必须在当前的 CommitIndex 之前，即 `index_0 <= CommitIndex`；为了确保在这种情况下的线性可读性，也就是确保 `read_1` 看到 `read_0` 看到的所有状态，需要在 `read_1` 的时刻，状态机至少包含到 CommitIndex 的日志。
+- **case-lt**：`term_0 < term_1`：在这种情况下，由于 Raft 保证当前领导者在建立时包含了所有已提交的日志，所以 `index_0 < NoopIndex`，其中 `NoopIndex` 是领导者建立时写入的空操作日志的索引；为了确保在这种情况下的线性可读性，需要在 `read_1` 的时刻，状态机至少包含到 `NoopIndex` 的日志。
 
-根据以上分析, **case-gt** 被排除, 而当 **case-lt** 满足后, 也就是 `NoopIndex` 提交后(**步骤-1**), 就只需考虑 **case-eq** 了(**步骤-2**), 也就是等 StateMachine apply 到至少 CommitIndex 再读(**步骤-4**), 就可以保证 `read_1` 一定看到 `read_0` 看到的 state, 即 Linearizable read.
+根据以上分析，排除了 **case-gt**，当满足 **case-lt** 时，即在 `NoopIndex` 被提交之后（**步骤 1**），只需要考虑 **case-eq**（**步骤 2**），也就是在读取之前等待状态机应用至少到 CommitIndex（**步骤 4**），这确保了 `read_1` 一定能看到 `read_0` 看到的状态，即线性可读性。
