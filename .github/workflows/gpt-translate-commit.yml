@@ -18,9 +18,7 @@ jobs:
           fetch-depth: 2
 
       - name: get changed files name
-        id: changed_files
-          # echo "files=$(git diff --name-only "${{ github.event.before }}" "${{ github.event.head }}" | grep '\.en\.md$' | tr '\n' ' ')" >> $GITHUB_OUTPUT
-          # echo "files=$(git diff --name-only "${{ github.event.before }}" HEAD | grep '\.en\.md$' | tr '\n' ' ')" >> $GITHUB_OUTPUT
+        id: changed_en_files
         run: |
           echo "files=$(git diff --name-only "HEAD^" HEAD | grep '\.en\.md$' | tr '\n' ' ')" >> $GITHUB_OUTPUT
 
@@ -35,6 +33,27 @@ jobs:
             You are an expert in this area.
             Please translate the given markdown into naturalistic {targetLanguage}.
             Keep links and images.
-          inputFiles: ${{ steps.changed_files.outputs.files }}
+          inputFiles: ${{ steps.changed_en_files.outputs.files }}
           outputFiles: '**/*.cn.md'
           languages: 'Chinese'
+
+
+      - name: get changed files name
+        id: changed_cn_files
+        run: |
+          echo "files=$(git diff --name-only "HEAD^" HEAD | grep '\.cn\.md$' | tr '\n' ' ')" >> $GITHUB_OUTPUT
+
+      - name: Run GPT Translate
+        uses: drmingdrmer/gpt-translate@master
+        with:
+          # model: gpt-4
+          # model: gpt-4-0613
+          # model: gpt-3.5-turbo
+          apikey: ${{ secrets.OPENAI_API_KEY_JUNJUN }}
+          prompt: |
+            You are an expert in this area.
+            Please translate the given markdown into naturalistic {targetLanguage}.
+            Keep links and images.
+          inputFiles: ${{ steps.changed_cn_files.outputs.files }}
+          outputFiles: '**/*.en.md'
+          languages: 'English'
