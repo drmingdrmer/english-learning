@@ -1,5 +1,7 @@
 # Raft (not)almighty: how to make it more robust
 
+https://dev.to/tarantool/raft-notalmighty-how-to-make-it-more-robust-3a11
+
 [#raf](https://dev.to/t/raf)[#quorum](https://dev.to/t/quorum)[#algorithms](https://dev.to/t/algorithms)[#programming](https://dev.to/t/programming)
 
 Everybody loves Raft. There is a common opinion that the presence of this algorithm in a distributed system implies that this system will be just fine. Namely:

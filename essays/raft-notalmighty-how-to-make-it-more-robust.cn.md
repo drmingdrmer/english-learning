@@ -1,5 +1,7 @@
 # Raft（不是）全能：如何使其更加健壮
 
+https://dev.to/tarantool/raft-notalmighty-how-to-make-it-more-robust-3a11
+
 [#raf](https://dev.to/t/raf)[#quorum](https://dev.to/t/quorum)[#algorithms](https://dev.to/t/algorithms)[#programming](https://dev.to/t/programming)
 
 每个人都喜欢Raft。普遍认为，在分布式系统中使用这个算法意味着这个系统将会非常好。具体来说：
