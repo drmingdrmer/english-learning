@@ -1,0 +1,60 @@
+**Crash-Consistent Backups for Applications in the AWS Cloud**
+
+
+
+https://cloud.netapp.com/blog/crash-consistent-backup-for-applications-in-aws
+
+
+
+Posted by [Yifat Perry, Product Marketing Lead](https://cloud.netapp.com/blog/author/yifat-perry-product-marketing-lead) Topics: [Cloud Volumes ONTAP, ](https://cloud.netapp.com/blog/topic/cloud-volumes-ontap)[Data Protection, ](https://cloud.netapp.com/blog/topic/data-protection)[AWS, ](https://cloud.netapp.com/blog/topic/aws)[Database, ](https://cloud.netapp.com/blog/topic/database)[Backup and Archive, ](https://cloud.netapp.com/blog/topic/backup-and-archive)[Advanced](https://cloud.netapp.com/blog/topic/advanced)
+
+As Murphy’s law states, “If something can go wrong, it will, and usually at the worst time.” This rule applies to everything, including IT operations. Although businesses hope that they won’t experience human errors, accidental code deletions, malware attacks, security breaches, or outages, every now and then those things happen, potentially causing huge financial and reputational losses to business. That is why it is very important to have a backup plan in place for your data, just in case the unexpected happens. This includes getting to know the technological options out there, such as Azure and [AWS snapshots](https://cloud.netapp.com/blog/aws-snapshots-a-complete-introduction-to-amazon-ebs-snapshots).
+ 
+ In this article, we will highlight the importance of consistent backups in the cloud, and how difficult it is to automate AWS backup. Also, we will explain how [NetApp’s Cloud Volumes ONTAP](https://cloud.netapp.com/ontap-cloud), with its powerful snapshot technology, supports efficient point in time recovery points for consistent data restores.
+ 
+
+**The Importance of Backup Database Consistency**
+
+Why are consistent backups important? There are a number of reasons. Regular backup of data to a recovery site in the cloud or on-premises limits the data loss. Many companies backup and store more than one copy of their critical data: one in the same site and another one in a far-away site, to further strengthen their recovery options.
+ 
+ IT compliance and regulations also mandate data backup in multiple industries, such as healthcare and financial services. Regulations in some countries also mandate that companies perform regular disaster recovery drills so that disaster readiness can be judged. [Sarbanes-Oxley Act (SOX)](https://digitalguardian.com/blog/what-sox-compliance) mandates the [data backup](http://wikibon.org/wiki/v/Sarbanes-Oxley_and_storage_compliance) and archival policy in its guidelines; all public companies have to follow with these guidelines to comply with SOX.
+ 
+ The AWS cloud works on a [shared responsibility model](https://aws.amazon.com/compliance/shared-responsibility-model/), meaning that AWS is responsible for security of the infrastructure and physical components present in the data center while the onus for all the application configuration and management tasks lies with the customer. Part of the responsibility that belongs to the customer is maintaining the consistent backup of applications hosted in the cloud. For example, consider the salary processing job where employer’s account has to be debited and employee’s account has to be credited with a certain amount.
+ 
+ What if the database backup happens after the amount has been debited from the employer’s account but before the step where the amount is credited to the employee’s account? If the database crashes at that point in time, the most recently saved state will still NOT reflect the amount that has been credited to the employee. This is called an inconsistent backup and it is capable of causing disruption and havoc to business operations and to customers.
+ 
+ To make sure that database backup is consistent, an application has to be brought into a “zero open transaction” or [quiescent](https://en.wikipedia.org/wiki/Quiesce) state before it is backed up. In a quiescent state the application pauses, bringing it to a consistent point before taking the snapshot or initiating the backup. After taking the snapshot or creating the backup, the database or application should be notified, and brought back to its normal operational state. This can often be a complicated process that requires use of other technology and lengthy amounts of scripting, integration, testing, maintenance, etc., which increase the complexity and risk of the project.
+ 
+ There are various methods for quiescing the application. If you are using VMware tools for quiescence, there are some steps which are needed at application end such as truncation of transaction logs after successful backup. Databases such as Oracle have a specific backup mode which assures a consistent backup. In the Microsoft ecosystem, including Active Directory and SQL Server, [Volume Shadow Copy Service](https://msdn.microsoft.com/en-us/library/windows/desktop/aa384649(v=vs.85).aspx) (VSS) makes sure there are no open transactions before triggering the backup, which guarantees an application-aware backup.
+ 
+ In the AWS cloud, to protect [Amazon Elastic Compute Cloud (Amazon EC2)](https://aws.amazon.com/ec2/) instances, [Amazon Elastic Block Store (Amazon EBS)](https://aws.amazon.com/ebs/) snapshots are the recommended backup solution. Amazon EBS snapshots are taken at the volume level and are incremental, meaning that only the changes from the most recent saved state will be stored, which reduces the cost of storage. But snapshot management is another consideration. It’s up to you to decide which snapshots to retain and which should be deleted and when—something which can become a major challenge if you happen to be taking snapshots at a high frequency to [minimize RPO](https://cloud.netapp.com/blog/how-to-reach-rpo0-using-aws-and-ontap-cloud). Also, since it is not possible to take that many snapshots manually, automated snapshots at a predefined frequency should be leveraged as a best practice for Amazon EC2 backup.
+ 
+
+**Configuring AWS Automatic Snapshots: Not Child’s Play**
+
+
+ AWS offers multiple choices for database services including [Amazon Relational Database Service (Amazon RDS)](https://aws.amazon.com/rds/) and [Amazon DynamoDB](https://aws.amazon.com/dynamodb/), both of which are fully managed by AWS. On the other hand, running a database of your choice on Amazon EC2 brings in additional responsibility of managing it end-to-end, and that includes retaining crash-consistent backups. Creating regular, automated Amazon EBS snapshots of the volumes is a good way to meet your desired service level agreements; however, there are multiple steps involved to automate Amazon EBS volume snapshots. [AWS API](https://aws.amazon.com/api-gateway/) and the AWS [command line interface](https://aws.amazon.com/cli/) (AWS CLI) are the two possible methods for scripting snapshot automation.
+ 
+ One can launch a small Amazon EC2 instance which can act as the central server for automating the Amazon EBS snapshot. Once the required permissions are provided to the central Amazon EC2 instance, it will be able to execute the Bash or Python scripts to automate the Amazon EBS volume snapshot creation.
+ 
+ In the first step, the details of all the instances which are supposed to be backed up have to be fetched; this is followed by extracting the list of all Amazon EBS volumes that are connected to those instances. If you have defined your recovery point objective (RPO) and recovery time objective (RTO), you can set the required frequency of snapshot creation and retention period. This point depends on the criticality of the workload. The script will create a snapshot and delete it as per the retention period defined in the script. There will now be a backup EC2 instance you can depend on.
+ 
+ If you are running multiple environments, such as production, test, and development, you should also tag the machines per the environment so that the same set of policies can be applied to each environment, otherwise maintenance will be a nightmare. Have you thought about maintenance of this script? You might have to deploy a versioning tool to maintain this script, as you have to modify it regularly to add and delete new instances which are provisioned and de-provisioned in the environment.
+ 
+
+**NetApp Cloud Volumes ONTAP: Hassle-free Data Protection, Replication and Recovery**
+
+One way to avoid the complications of scripting to set up AWS automated backups and Amazon EC2 backups is to turn to [NetApp’s Cloud Volumes ONTAP](https://cloud.netapp.com/ontap-cloud) for easy data protection, replication and recovery capabilities. NetApp’s Snapshots are instant point-in-time recovery points for your data, regardless of the size on the primary storage system. They’re extremely space-efficient which saves on capacity requirements, and combined with NetApp SnapCenter®, they provide a centralized control and management platform, and guarantee application-consistent snapshots, backups, and restore.
+ 
+ The [SnapCenter platform](https://www.youtube.com/watch?v=ejsq7nNawI4) supports standard applications, databases, filesystems, and VMs such as Microsoft-SQL, MySQL, SAP, Oracle, Sharepoint (MS), Exchange (MS), HyperV (MS VMWare), VMWare and more. Plus, it streamlines your hybrid cloud with application-consistent data backup management.
+ 
+ Now, while ONTAP Snapshots are very powerful, they are not exactly a backup. A backup of your data implies that your data has been copied to an alternate device either in the same or a separate location. NetApp also makes this extremely easy to do with two other Cloud Volumes ONTAP features: [SnapMirror](https://cloud.netapp.com/blog/snapmirror-data-replication-aws) and [SnapVault](https://www.netapp.com/us/products/protection-software/snapvault.aspx). Both features enable automated, consistent data replication and recovery requirements. [With SnapMirror’s data replication](https://cloud.netapp.com/blog/simplified-disaster-recovery-ontap-cloud-snapmirror), a baseline of your data will be established at the secondary site just once, followed by cost-saving incremental updates based on Cloud Volumes ONTAP snapshots. Additionally, with SnapVault, you can retain the crash-consistent backups for a long duration, even as long as 20 years, if compliance and regulatory guidelines mandate such requirements.
+ 
+ Additionally, with the help of [Cloud Manager](https://cloud.netapp.com/ontap-cloud), Cloud Volumes ONTAP’s [single-pane control panel](https://cloud.netapp.com/blog/hybrid-cloud-storage-management-with-oncommand-cloud-manager), you have complete control to define your snapshot policies, including snapshot scheduling, retention and deletion periods, the number of copies to save, and more without writing any code or scripts. A success story that demonstrates the NetApp approach to crash-consistent backups is with our customer the [Cordant Group](https://cloud.netapp.com/success-story-cordant-group), which moved their entire IT infrastructure to AWS in order to to create a private cloud with the help of Cloud Volumes ONTAP. With Cloud Volumes ONTAP snapshots technology, they were able to attain consistent data backup that ensures they stay protected and doesn’t affect their application performance.
+ 
+
+**Summary**
+
+Whether it is a regulatory requirement, or you want to be ready for failures, crash-consistent backup of your data is critical for the smooth operation of your business. If your application, let’s say a database, is running in the cloud, you’re responsible for maintaining the consistency of the backup. Inconsistent backups can result in huge financial losses. AWS offers snapshot technology, but it requires multiple steps starting from granting the right set of permissions, to writing complex AWS automation scripts that will have to be maintained in perpetuity.
+ 
+ Cloud Volumes ONTAP can streamline snapshots, backup and recovery processes without any coding, helping you comply with regulations and stay ready to face any disaster.
