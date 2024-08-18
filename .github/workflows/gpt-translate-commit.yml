@@ -29,6 +29,7 @@ jobs:
           # model: gpt-4-0613
           # model: gpt-3.5-turbo
           # apikey: ${{ secrets.OPENAI_API_KEY_JUNJUN }}
+          model: deepseek-chat
           apikey: ${{ secrets.DEEPSEEK }}
           basePath: https://api.deepseek.com/v1
           prompt: |
